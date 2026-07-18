@@ -3,48 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Free Community</title>
-    
+    <title>Minecraft Addon & Pack</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
-
-                <div class="header-flex">
-            <img src="logo.png" alt="Logo" class="logo" onerror="this.src='anh1.png?text=Logo';">
-            
-            <input type="text" class="search-box" placeholder="Tìm kiếm ở đây...">
+    <div class="header">
+        <div class="avatar-container">
+            <img src="anh1.png" alt="Avatar" class="avatar">
         </div>
-
-        <div class="section-title">
-            Nhiều lượt tải nhất
-        </div>
-
-        <div id="addonContainer" class="addon-grid"></div>
-
-    </div>
-
-    <footer>
-        &copy; 2026 Minecraft Free Community. Phi lợi nhuận & Miễn phí.
-    </footer>
-        <div id="downloadModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalModName" style="color: #ffb6c1; margin-top: 0;">Tên Mod</h3>
-            
-            <p style="color: #ffb6c1; font-size: 14px; margin-bottom: 5px;">Thanh tiến trình tải xuống</p>
-            <div class="progress-bar-container">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
-
-            <div class="modal-buttons">
-                <button id="btnDownloadActual" class="btn-action btn-download">Tải ngay</button>
-                <button id="btnCancel" class="btn-action btn-back">Trở lại</button>
-            </div>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Tìm kiếm ở đây...">
         </div>
     </div>
+
+    <h2 class="section-title">NHIỀU LƯỢT TẢI NHẤT</h2>
+
+    <div class="grid-container" id="mod-grid">
+        </div>
 
     <script src="data.js"></script>
+    <script>
+        // Hàm tự động hiển thị danh sách các mod ra màn hình
+        function renderMods(list) {
+            const gridContainer = document.getElementById('mod-grid');
+            gridContainer.innerHTML = ''; // Làm sạch ô cũ trước khi nạp
 
+            list.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'grid-item';
+
+                // QUAN TRỌNG: Đã thêm thuộc tính target="_blank" để tự nhảy sang tab mới khi bấm tải
+                card.innerHTML = `
+                    <a href="${item.downloadUrl}" target="_blank" class="item-link">
+                        <div class="img-box">
+                            <img src="${item.img}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150?text=150x150'">
+                        </div>
+                        <p class="item-name">${item.name}</p>
+                    </a>
+                `;
+                gridContainer.appendChild(card);
+            });
+        }
+
+        // Kích hoạt hiển thị danh sách lúc tải trang
+        renderMods(modList);
+
+        // Chức năng tìm kiếm tự động khi gõ chữ vào ô tìm kiếm
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const keyword = e.target.value.toLowerCase().trim();
+            const filteredList = modList.filter(item => 
+                item.name.toLowerCase().includes(keyword)
+            );
+            renderMods(filteredList);
+        });
+    </script>
 </body>
 </html>
