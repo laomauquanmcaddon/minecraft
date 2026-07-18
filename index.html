@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Free Community</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+
+                <div class="header-flex">
+            <img src="logo.png" alt="Logo" class="logo" onerror="this.src='anh1.png?text=Logo';">
+            
+            <input type="text" class="search-box" placeholder="Tìm kiếm ở đây...">
+        </div>
+
+        <div class="section-title">
+            Nhiều lượt tải nhất
+        </div>
+
+        <div id="addonContainer" class="addon-grid"></div>
+
+    </div>
+
+    <footer>
+        &copy; 2026 Minecraft Free Community. Phi lợi nhuận & Miễn phí.
+    </footer>
+        <div id="downloadModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalModName" style="color: #ffb6c1; margin-top: 0;">Tên Mod</h3>
+            
+            <p style="color: #ffb6c1; font-size: 14px; margin-bottom: 5px;">Thanh tiến trình tải xuống</p>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="btnDownloadActual" class="btn-action btn-download">Tải ngay</button>
+                <button id="btnCancel" class="btn-action btn-back">Trở lại</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+
+</body>
+</html>
