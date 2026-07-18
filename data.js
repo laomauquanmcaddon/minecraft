@@ -4,7 +4,7 @@ const modList = [
     { 
         name: "mcaddon<br>mcpack 1", 
         img: "anh1.png", 
-        downloadUrl: "https://www.mediafire.com/file/mp6ju0gmzfgwzhx/Terrain_landscapes_V3.0.mcaddon/file" 
+        downloadUrl: "https://www.mediafire.com/file/mp6ju0gmzfgwzhx/Terrain_landscapes_V3.0.mcaddon" 
     }, 
     // Ô số 2: Link ảnh mẫu và link tải file trực tiếp (.mcpack)
     { 
