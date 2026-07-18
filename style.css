@@ -14,7 +14,7 @@ body {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 20px 60px 20px; /* Tăng padding bottom lên 60px để các ô Mod cuối cùng không bị che mất bởi footer cố định */
+    padding: 20px 20px 80px 20px; /* Tăng padding để không bị che bởi footer */
     box-sizing: border-box;
     flex: 1;
 }
@@ -105,14 +105,15 @@ body {
 /* ///////// 4. CSS CHO THANH TAB PHÂN LOẠI ///////// */
 .category-tabs {
     display: flex;
-    justify-content: center;
     gap: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     overflow-x: auto;
-    padding-bottom: 5px;
+    padding-bottom: 8px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Vuốt mượt trên điện thoại */
 }
 .category-tabs::-webkit-scrollbar {
-    display: none;
+    display: none; /* Ẩn thanh cuộn xấu xí */
 }
 .tab-btn {
     background-color: #000000;
@@ -132,17 +133,19 @@ body {
     border-color: #ffb6c1;
 }
 
-/* ///////// 5. LƯỚI HIỂN THỊ 4 Ô TRÊN MỘT HÀNG ///////// */
+/* ///////// 5. LƯỚI TỰ ĐỘNG DIỄN THEO MÀN HÌNH ///////// */
 .addon-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 8px; 
+    /* Tự động chia cột: Trên mobile tối thiểu là 140px (chia được tầm 2 cột), trên PC tự tăng thêm */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 12px; 
+    width: 100%;
 }
 .addon-card {
     background-color: #000000;
     border: 1px solid #333333;
     border-radius: 8px;
-    padding: 8px;
+    padding: 10px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -150,6 +153,7 @@ body {
     align-items: center;
     box-sizing: border-box;
     transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease; 
+    width: 100%;
 }
 .addon-thumb {
     width: 100%;
@@ -157,12 +161,15 @@ body {
     object-fit: cover;
     border-radius: 6px;
     background-color: #222222;
+    display: block;
 }
 .addon-card p {
-    margin: 6px 0 0 0;
-    font-size: 11px;
+    margin: 8px 0 0 0;
+    /* Chữ tự động co giãn mượt mà theo kích thước màn hình */
+    font-size: clamp(11px, 1.2vw + 8px, 14px); 
     font-weight: bold;
-    line-height: 1.3;
+    line-height: 1.4;
+    word-break: break-word;
 }
 .addon-card:active {
     transform: scale(0.95);
@@ -196,7 +203,7 @@ body {
     box-sizing: border-box;
     text-align: center;
     border: 2px solid #ffb6c1;
-    margin-bottom: 60px; /* Đẩy popup cao hơn chân trang cố định một chút */
+    margin-bottom: 80px; 
     animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
@@ -280,19 +287,31 @@ body {
     100% { transform: translate(-50%, -20px); opacity: 0; }
 }
 
-/* ///////// 8. CẬP NHẬT CHÂN TRANG LUÔN CỐ ĐỊNH Ở ĐÁY MÀN HÌNH ///////// */
+/* ///////// 8. CHÂN TRANG CỐ ĐỊNH Ở ĐÁY MÀN HÌNH ///////// */
 footer {
-    position: fixed;   /* Biến footer thành phần tử cố định */
-    bottom: 0;         /* Găm chặt vào đáy dưới cùng */
+    position: fixed;   
+    bottom: 0;         
     left: 0;
-    width: 100%;       /* Trải rộng hết chiều ngang */
+    width: 100%;       
     background-color: #000000;
     color: #777777;
     text-align: center;
-    padding: 12px 0;   /* Co gọn khoảng đệm để không chiếm nhiều diện tích màn hình */
+    padding: 12px 0;   
     font-size: 11px;
     line-height: 1.5;
     border-top: 1px solid #222222;
     box-sizing: border-box;
-    z-index: 1001;     /* Đặt tầng cao để lớp đen mờ của popup không đè được lên nó */
+    z-index: 1001;     
+}
+
+/* ///////// 9. CẤU HÌNH RIÊNG KHI LÊN MÀN HÌNH LỚN (PC / TABLET) ///////// */
+@media (min-width: 768px) {
+    .addon-grid {
+        /* Trên PC, nâng kích thước tối thiểu của ô lên 170px để tránh bị quá nhỏ bè */
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 16px;
+    }
+    .category-tabs {
+        justify-content: center; /* Đưa các tab ra giữa màn hình PC cho đẹp */
+    }
 }
