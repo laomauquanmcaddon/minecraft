@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Cấu hình dự án Firebase của bạn
+// Cấu hình kết nối Firebase chính xác của bạn
 const firebaseConfig = {
     apiKey: "AIzaSyBlXJQP0mBLcXF6Dv3TvdlyoDN8MoLmN0k",
     authDomain: "minecraft-free-community.firebaseapp.com",
@@ -16,14 +16,17 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Các phần tử trên trang Đăng nhập (login.html)
+    // --- LẤY PHẦN TỬ GIAO DIỆN TRÊN TRANG LOGIN.HTML ---
     const emailInput = document.getElementById('authEmail');
     const passwordInput = document.getElementById('authPassword');
     const btnSignIn = document.getElementById('btnSignIn');
     const btnSignUp = document.getElementById('btnSignUp');
     const btnSignOut = document.getElementById('btnSignOut');
+    const authContainer = document.getElementById('authContainer');
+    const userInfoContainer = document.getElementById('userInfoContainer');
+    const userEmailTxt = document.getElementById('userEmailTxt');
 
-    // Các phần tử trên Trang Chủ (index.html)
+    // --- LẤY PHẦN TỬ GIAO DIỆN TRÊN TRANG CHỦ INDEX.HTML ---
     const userHomeBtn = document.getElementById('userHomeBtn');
     const defaultUserIcon = document.getElementById('defaultUserIcon');
     const userAvatar = document.getElementById('userAvatar');
@@ -33,62 +36,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isLoggedIn = false;
 
-    // Hàm thông báo Toast thông tin
+    // Hàm hiển thị thông báo nhanh (Toast) trực quan
     const notify = (message) => {
         const toast = document.getElementById('customToast');
         if (toast) {
             toast.innerHTML = message;
             toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 2500);
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
         } else {
             alert(message);
         }
     };
 
-    // Lắng nghe trạng thái đăng nhập từ máy chủ Firebase
+    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP LIÊN TỤC TỪ FIREBASE
     onAuthStateChanged(auth, (user) => {
         if (user) {
             isLoggedIn = true;
 
-            // Xử lý giao diện trang login.html nếu đang ở đây
-            const authContainer = document.getElementById('authContainer');
-            const userInfoContainer = document.getElementById('userInfoContainer');
-            const userEmailTxt = document.getElementById('userEmailTxt');
+            // 1. Nếu đang ở trang login.html: Ẩn khung nhập, hiện thông báo chào mừng
             if (authContainer) authContainer.style.display = 'none';
             if (userInfoContainer) userInfoContainer.style.display = 'block';
-            if (userEmailTxt) userEmailTxt.innerHTML = `🎉 Chào mừng quay trở lại!<br><strong style="color:#ffb6c1;">${user.email}</strong>`;
+            if (userEmailTxt) userEmailTxt.innerHTML = `🎉 Đăng nhập thành công!<br><strong style="color:#ffb6c1;">${user.email}</strong>`;
             
-            // --- THU THẬP VÀ XỬ LÝ AVATAR TÀI KHOẢN ---
+            // 2. Nếu đang ở trang index.html: Hiển thị avatar Gmail (hoặc tạo tự động theo tên)
             if (userAvatar && defaultUserIcon) {
-                let finalAvatarUrl = "";
-
-                if (user.photoURL) {
-                    // 1. Nếu đăng nhập Google/Gmail và có avatar gốc, lấy luôn ảnh đó
-                    finalAvatarUrl = user.photoURL;
-                } else {
-                    // 2. Nếu đăng ký thường bằng Email, tự tạo avatar theo chữ cái đầu (Nền hồng chữ đen cực đẹp)
-                    const firstLetter = user.email.charAt(0).toUpperCase();
-                    finalAvatarUrl = `https://ui-avatars.com/api/?name=${firstLetter}&background=ffb6c1&color=000000&bold=true&rounded=true`;
-                }
-
+                // Tự động lấy ảnh avatar từ Gmail, nếu đăng ký thường thì tạo ảnh chữ cái nền Hồng chữ Đen cực chất
+                const finalAvatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&background=ffb6c1&color=000000&bold=true&rounded=true`;
                 userAvatar.src = finalAvatarUrl;
                 userAvatar.style.display = 'block';
                 defaultUserIcon.style.display = 'none';
             }
-
             if (dropdownEmail) {
                 dropdownEmail.innerText = user.email;
             }
         } else {
             isLoggedIn = false;
 
-            // Đưa giao diện trang login.html về trạng thái chưa đăng nhập
-            const authContainer = document.getElementById('authContainer');
-            const userInfoContainer = document.getElementById('userInfoContainer');
+            // 1. Trả trang login.html về trạng thái form nhập liệu ban đầu
             if (authContainer) authContainer.style.display = 'block';
             if (userInfoContainer) userInfoContainer.style.display = 'none';
 
-            // Reset nút Avatar ở trang chủ về icon mặc định
+            // 2. Trả nút Avatar ở trang chủ về icon hình người mặc định ban đầu
             if (userAvatar && defaultUserIcon) {
                 userAvatar.style.display = 'none';
                 defaultUserIcon.style.display = 'block';
@@ -99,13 +87,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Sự kiện nhấn vào nút tròn Avatar ở Trang Chủ
+    // --- SỰ KIỆN XỬ LÝ TRÊN TRANG CHỦ (INDEX.HTML) ---
     if (userHomeBtn) {
         userHomeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!isLoggedIn) {
+                // Chưa đăng nhập -> Nhảy sang trang đăng ký
                 window.location.href = "login.html";
             } else {
+                // Đã đăng nhập -> Bật tắt menu cài đặt nhanh
                 if (accountDropdown) {
                     const isHidden = accountDropdown.style.display === 'none';
                     accountDropdown.style.display = isHidden ? 'block' : 'none';
@@ -114,32 +104,41 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Click ra ngoài để đóng menu Setting dropdown
+    // Nhấp chuột ra ngoài màn hình để ẩn hộp menu Setting
     document.addEventListener('click', () => {
         if (accountDropdown) accountDropdown.style.display = 'none';
     });
 
-    // Nút đăng xuất nhanh ở Trang Chủ
+    // Nút đăng xuất nhanh tích hợp trong Menu trang chủ
     if (btnDropdownSignOut) {
         btnDropdownSignOut.addEventListener('click', () => {
-            signOut(auth).then(() => { alert("🔒 Bạn đã đăng xuất thành công!"); });
+            signOut(auth).then(() => { notify("🔒 Đã đăng xuất tài khoản!"); });
         });
     }
 
-    // Xử lý sự kiện trang đăng nhập (login.html)
+    // --- SỰ KIỆN XỬ LÝ TRÊN TRANG ĐĂNG NHẬP (LOGIN.HTML) ---
     if (btnSignUp) {
         btnSignUp.addEventListener('click', () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value;
-            if (!email || !password) return notify("⚠️ Vui lòng điền đủ Email và Mật khẩu!");
-            if (password.length < 6) return notify("⚠️ Mật khẩu cần dài từ 6 ký tự trở lên!");
             
+            if (!email || !password) return notify("⚠️ Vui lòng nhập đầy đủ Email và Mật khẩu!");
+            if (password.length < 6) return notify("⚠️ Bảo mật bắt buộc: Mật khẩu phải từ 6 ký tự trở lên!");
+
             createUserWithEmailAndPassword(auth, email, password)
-                .then(() => { 
-                    notify("🎉 Tạo tài khoản thành công!");
+                .then(() => {
+                    notify("🎉 Chúc mừng bạn đã đăng ký tài khoản thành công!");
                     emailInput.value = ""; passwordInput.value = "";
                 })
-                .catch(() => { notify("❌ Lỗi: Tài khoản đã tồn tại hoặc điền sai!"); });
+                .catch((error) => {
+                    if (error.code === 'auth/email-already-in-use') {
+                        notify("❌ Email này đã được đăng ký trước đó rồi!");
+                    } else if (error.code === 'auth/invalid-email') {
+                        notify("❌ Định dạng Email không hợp lệ (ví dụ đúng: nick@gmail.com)!");
+                    } else {
+                        notify("❌ Lỗi đăng ký: " + error.message);
+                    }
+                });
         });
     }
 
@@ -147,20 +146,23 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSignIn.addEventListener('click', () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value;
-            if (!email || !password) return notify("⚠️ Vui lòng điền đủ Email và Mật khẩu!");
+
+            if (!email || !password) return notify("⚠️ Vui lòng nhập cả Email và Mật khẩu!");
 
             signInWithEmailAndPassword(auth, email, password)
-                .then(() => { 
-                    notify("✅ Đăng nhập thành công!");
-                    emailInput.value = ""; passwordInput.value = "";
+                .then(() => {
+                    notify("✅ Đăng nhập thành công! Đang chuyển hướng về trang chủ...");
+                    setTimeout(() => { window.location.href = "index.html"; }, 1200);
                 })
-                .catch(() => { notify("❌ Sai tài khoản hoặc mật khẩu!"); });
+                .catch((error) => {
+                    notify("❌ Thông tin tài khoản hoặc mật khẩu không chính xác!");
+                });
         });
     }
 
     if (btnSignOut) {
         btnSignOut.addEventListener('click', () => {
-            signOut(auth).then(() => { notify("🔒 Đã đăng xuất!"); });
+            signOut(auth).then(() => { notify("🔒 Đã đăng xuất an toàn!"); });
         });
     }
 });

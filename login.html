@@ -7,26 +7,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
+        /* CSS căn chỉnh riêng cho form đăng nhập nằm chính giữa màn hình */
         .auth-page {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            min-height: 90vh;
             padding: 20px;
+            box-sizing: border-box;
         }
         .auth-box {
             width: 100%;
             max-width: 380px;
             background-color: #000000;
-            border: 2px solid #333333;
+            border: 2px solid #ffb6c1; /* Viền hồng đồng bộ giao diện */
             border-radius: 12px;
             padding: 30px 20px;
             box-sizing: border-box;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 4px 25px rgba(255, 182, 193, 0.2);
             text-align: center;
-        }
-        .auth-box:focus-within {
-            border-color: #ffb6c1;
         }
         .auth-title {
             color: #ffb6c1;
@@ -36,6 +35,9 @@
             letter-spacing: 1px;
             text-transform: uppercase;
         }
+        .auth-title i {
+            margin-right: 8px;
+        }
         .auth-input-group {
             display: flex;
             flex-direction: column;
@@ -43,15 +45,34 @@
             margin-bottom: 20px;
         }
         .auth-box .search-box {
+            width: 100%;
+            box-sizing: border-box;
             padding: 12px 15px;
+            background-color: #111111;
+            border: 1px solid #333333;
+            color: #ffffff;
+            border-radius: 6px;
+        }
+        .auth-box .search-box:focus {
+            border-color: #ffb6c1;
+            outline: none;
         }
         .auth-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .auth-actions .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
         }
         .btn-back {
             display: inline-block;
-            margin-top: 20px;
+            margin-top: 15px;
             color: #777777;
             text-decoration: none;
             font-size: 13px;
@@ -60,6 +81,24 @@
         .btn-back:hover {
             color: #ffb6c1;
         }
+        /* Khung thông báo lỗi/thành công nhảy ra giữa màn hình */
+        .toast-box {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 1px solid #ffb6c1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 9999;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -67,7 +106,7 @@
     <div class="auth-page">
         <div class="auth-box">
             <div class="auth-title">
-                <i class="fas fa-user-shield"></i> Thành Viên Cộng Đồng
+                <i class="fas fa-user-shield"></i> Tài khoản thành viên
             </div>
             
             <div id="authContainer">
@@ -77,20 +116,20 @@
                 </div>
                 <div class="auth-actions">
                     <button id="btnSignIn" class="btn btn-download">ĐĂNG NHẬP</button>
-                    <button id="btnSignUp" class="btn btn-cancel">ĐĂNG KÝ MỚI</button>
+                    <button id="btnSignUp" class="btn btn-cancel">ĐĂNG KÝ</button>
                 </div>
             </div>
 
             <div id="userInfoContainer" style="display: none;">
-                <p id="userEmailTxt" style="color: #ffffff; font-size: 15px; margin-bottom: 20px;"></p>
-                <button id="btnSignOut" class="btn btn-cancel">ĐĂNG XUẤT TÀI KHOẢN</button>
+                <p id="userEmailTxt" style="color: #ffffff; font-size: 15px; margin-bottom: 20px; line-height: 1.6;"></p>
+                <button id="btnSignOut" class="btn btn-cancel" style="width: 100%; padding: 12px; border-radius: 6px;">ĐĂNG XUẤT TÀI KHOẢN</button>
             </div>
 
             <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
         </div>
     </div>
 
-    <div id="customToast" class="toast-container"></div>
+    <div id="customToast" class="toast-box"></div>
 
     <script type="module" src="auth.js"></script>
 </body>
