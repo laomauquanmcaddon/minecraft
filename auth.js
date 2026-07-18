@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Cấu hình Firebase chính xác của dự án của bạn
 const firebaseConfig = {
   apiKey: "AIzaSyDUXJQP0mBLsXF6Dv3TvdlVoINBHoLw0rk",
   authDomain: "minecraft-free-community.firebaseapp.com",
@@ -18,14 +17,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
-    // --- CÁC PHẦN TỬ CHAT TRÊN INDEX.HTML ---
     const chatAuthWarning = document.getElementById('chatAuthWarning');
     const chatBoxContent = document.getElementById('chatBoxContent');
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const btnSendChat = document.getElementById('btnSendChat');
 
-    // --- PHẦN TỬ TRÊN TRANG LOGIN.HTML ---
     const emailInput = document.getElementById('authEmail');
     const passwordInput = document.getElementById('authPassword');
     const btnSignIn = document.getElementById('btnSignIn');
@@ -35,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const userInfoContainer = document.getElementById('userInfoContainer');
     const userEmailTxt = document.getElementById('userEmailTxt');
 
-    // --- PHẦN TỬ TRÊN TRANG CHỦ INDEX.HTML ---
     const userHomeBtn = document.getElementById('userHomeBtn');
     const defaultUserIcon = document.getElementById('defaultUserIcon');
     const userAvatar = document.getElementById('userAvatar');
@@ -43,11 +39,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const dropdownEmail = document.getElementById('dropdownEmail');
     const btnDropdownSignOut = document.getElementById('btnDropdownSignOut');
 
+    // Các thành phần cấu hình ẩn danh mới thêm
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const chkIncognito = document.getElementById('chkIncognito');
+
     let isLoggedIn = false;
     let currentUser = null;
     let unsubscribeChat = null;
 
-    // Hàm thông báo Toast nhảy lên giữa màn hình
     const notify = (message) => {
         const toast = document.getElementById('customToast');
         if (toast) {
@@ -59,18 +59,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP (ĐÃ TÍCH HỢP ĐỒNG BỘ CHAT)
+    // Hàm tạo mã số ẩn danh ngẫu nhiên ngắn gọn cố định theo ID người dùng
+    function getAnonymousName(uid) {
+        let hash = 0;
+        for (let i = 0; i < uid.length; i++) {
+            hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return "Ẩn danh #" + Math.abs(hash % 10000).toString().padStart(4, '0');
+    }
+
+    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP
     onAuthStateChanged(auth, (user) => {
         if (user) {
             isLoggedIn = true;
             currentUser = user;
 
-            // Xử lý khung Chat khi đã đăng nhập
             if (chatAuthWarning) chatAuthWarning.style.display = 'none';
             if (chatBoxContent) chatBoxContent.style.display = 'block';
             loadChatMessages();
 
-            // Xử lý Header và Trang Login cũ
             if (authContainer) authContainer.style.display = 'none';
             if (userInfoContainer) userInfoContainer.style.display = 'block';
             if (userEmailTxt) userEmailTxt.innerHTML = `🎉 Đăng nhập thành công!<br><strong style="color:#ffb6c1;">${user.email}</strong>`;
@@ -81,19 +88,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 userAvatar.style.display = 'block';
                 defaultUserIcon.style.display = 'none';
             }
-            if (dropdownEmail) {
-                dropdownEmail.innerText = user.email;
-            }
+            if (dropdownEmail) dropdownEmail.innerText = user.email;
         } else {
             isLoggedIn = false;
             currentUser = null;
 
-            // Xử lý khung Chat khi chưa đăng nhập
             if (chatAuthWarning) chatAuthWarning.style.display = 'block';
             if (chatBoxContent) chatBoxContent.style.display = 'none';
             if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
 
-            // Thao tác cũ khi đăng xuất
             if (authContainer) authContainer.style.display = 'block';
             if (userInfoContainer) userInfoContainer.style.display = 'none';
 
@@ -101,13 +104,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 userAvatar.style.display = 'none';
                 defaultUserIcon.style.display = 'block';
             }
-            if (accountDropdown) {
-                accountDropdown.style.display = 'none';
-            }
+            if (accountDropdown) accountDropdown.style.display = 'none';
         }
     });
 
-    // --- LOGIC XỬ LÝ LỌC VÀ LƯU TIN NHẮN CHAT VĨNH VIỄN ---
+    // BẬT/TẮT BẢNG NHỎ CÀI ĐẶT DƯỚI AVATAR
+    if (btnOpenSettings && settingsPanel) {
+        btnOpenSettings.addEventListener('click', (e) => {
+            e.stopPropagation(); // Tránh kích hoạt đóng đóng mở dropdown ngẫu nhiên
+            if (settingsPanel.style.maxHeight === '0px' || !settingsPanel.style.maxHeight) {
+                settingsPanel.style.maxHeight = '50px';
+            } else {
+                settingsPanel.style.maxHeight = '0px';
+            }
+        });
+    }
+
+    // --- TẢI TIN NHẮN TỪ FIRESTORE (XỬ LÝ HIỂN THỊ ẨN DANH) ---
     function loadChatMessages() {
         if (unsubscribeChat) unsubscribeChat();
 
@@ -122,9 +135,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 const msgEl = document.createElement('div');
                 msgEl.style.fontSize = "12px";
                 msgEl.style.lineHeight = "1.4";
+                msgEl.style.display = "flex";
+                msgEl.style.alignItems = "center";
+                msgEl.style.gap = "6px";
                 
-                const shortEmail = data.email.split('@')[0];
-                msgEl.innerHTML = `<strong style="color: #ffb6c1;">${shortEmail}:</strong> <span style="color: #ffffff;">${data.message}</span>`;
+                let displayName = "";
+                let displayAvatar = "";
+
+                // Kiểm tra xem tin nhắn này có bật chế độ ẩn danh hay không
+                if (data.isIncognito) {
+                    displayName = data.anonName || "Ẩn danh";
+                    // Sử dụng hình icon khỉ dễ thương cho chế độ ẩn danh
+                    displayAvatar = "🐒"; 
+                } else {
+                    displayName = data.email.split('@')[0];
+                    displayAvatar = "💬";
+                }
+
+                msgEl.innerHTML = `<span>${displayAvatar}</span><strong style="color: #ffb6c1;">${displayName}:</strong> <span style="color: #ffffff;">${data.message}</span>`;
                 chatMessages.appendChild(msgEl);
             });
             
@@ -132,15 +160,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // --- THAO TÁC GỬI TIN NHẮN TÍCH HỢP ẨN DANH ---
     function sendNewMessage() {
         if (!chatInput || !currentUser) return;
         const text = chatInput.value.trim();
         if (text === "") return;
 
+        const isIncognitoActive = chkIncognito ? chkIncognito.checked : false;
+
         addDoc(collection(db, "chats"), {
             email: currentUser.email,
             message: text,
-            timestamp: new Date()
+            timestamp: new Date(),
+            isIncognito: isIncognitoActive, // Lưu trạng thái ẩn danh vào Database
+            anonName: getAnonymousName(currentUser.uid) // Tạo mã số ẩn danh dựa trên UID tài khoản
         }).then(() => {
             chatInput.value = "";
         }).catch((err) => {
@@ -155,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- CÁC LOGIC SỰ KIỆN CỦA TRANG CHỦ & TRANG ĐĂNG NHẬP CŨ ---
+    // --- CÁC LOGIC CLICK GIAO DIỆN CŨ ---
     if (userHomeBtn) {
         userHomeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -165,8 +198,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (accountDropdown) {
                     const isHidden = accountDropdown.style.display === 'none';
                     accountDropdown.style.display = isHidden ? 'block' : 'none';
+                    // Đóng panel cài đặt lại khi mở lại menu mới
+                    if (settingsPanel) settingsPanel.style.maxHeight = '0px'; 
                 }
             }
+        });
+    }
+
+    // Ngăn chặn đóng dropdown khi click vào bên trong bảng điều khiển nhỏ cài đặt
+    if (accountDropdown) {
+        accountDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
     }
 
