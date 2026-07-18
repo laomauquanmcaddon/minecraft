@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsPanel = document.getElementById('settingsPanel');
     const chkIncognito = document.getElementById('chkIncognito');
 
-    // CONFIG ĐẶC QUYỀN ADMIN CHÍNH CHỦ
+    // ĐẶC QUYỀN ADMIN CHÍNH CHỦ
     const ADMIN_EMAIL = "huquan227@gmail.com"; 
     const adminCrown = document.getElementById('adminCrown');
     const adminSettingRow = document.getElementById('adminSettingRow');
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return "Ẩn danh #" + Math.abs(hash % 10000).toString().padStart(4, '0');
     }
 
-    // KIỂM TRA ĐĂNG NHẬP VÀ PHÂN QUYỀN ADMIN TUYỆT ĐỐI
+    // XÁC THỰC VÀ PHÂN QUYỀN TRUY CẬP ADMIN
     onAuthStateChanged(auth, (user) => {
         if (user) {
             isLoggedIn = true;
@@ -98,13 +98,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 defaultUserIcon.style.display = 'none';
             }
 
-            // NẾU LÀ GMAIL ADMIN ĐƯỢC CẤP QUYỀN
+            // NẾU LÀ GMAIL ADMIN
             if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                if (adminCrown) adminCrown.style.display = 'block'; // Hiện vương miện trên Avatar tròn
-                if (dropdownEmail) dropdownEmail.innerHTML = `<span style="color: #ffd700; font-weight: bold;">👑 ${user.email}</span>`; // Tên màu vàng
-                if (adminSettingRow) adminSettingRow.style.display = 'flex'; // Cho phép can thiệp mở bảng cài đặt admin
+                if (adminCrown) adminCrown.style.display = 'block'; 
+                if (dropdownEmail) dropdownEmail.innerHTML = `<span style="color: #ffd700; font-weight: bold;">👑 ${user.email}</span>`; 
+                if (adminSettingRow) adminSettingRow.style.display = 'flex'; 
             } else {
-                // Khách bình thường: Khóa sạch mọi tính năng can thiệp chỉnh sửa
+                // TÀI KHOẢN KHÁCH: KHÓA TOÀN BỘ CHỨC NĂNG CHỈNH SỬA
                 if (adminCrown) adminCrown.style.display = 'none';
                 if (dropdownEmail) dropdownEmail.innerText = user.email;
                 if (adminSettingRow) adminSettingRow.style.display = 'none';
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // ĐỒNG BỘ DANH SÁCH Ô MOD TỪ FIRESTORE
+    // LẤY DỮ LIỆU CÁC Ô MOD TỪ FIREBASE
     function loadAddonCards() {
         if (unsubscribeMods) unsubscribeMods();
         const q = query(collection(db, "addons"), orderBy("timestamp", "desc"));
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadAddonCards();
 
-    // IN RA LƯỚI Ô CHỨA MOD
+    // RENDER LƯỚI Ô CHỨA MOD (HỖ TRỢ TÊN FILE ẢNH THỦ CÔNG)
     function renderModsGrid() {
         if (!addonContainer) return;
         addonContainer.innerHTML = "";
@@ -157,19 +157,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement('div');
             card.className = "addon-card";
             
-            // Chỉ đổi viền cảnh báo xoá màu đỏ nếu là Admin thật sự và đang bật nút Xoá
             if (isAuthorizedAdmin && chkAdminMode && chkAdminMode.checked && chkDeleteMode && chkDeleteMode.checked) {
                 card.style.borderColor = "#ff4d4d";
                 card.style.cursor = "pointer";
             }
 
+            // HỖ TRỢ ĐỌC ẢNH THỦ CÔNG (Nếu lỗi hoặc rỗng sẽ tự đổi sang logo dự phòng anh1.png)
             card.innerHTML = `
-                <img src="${mod.image || 'https://via.placeholder.com/150'}" class="addon-thumb" onerror="this.src='https://via.placeholder.com/150';">
+                <img src="${mod.image || 'anh1.png'}" class="addon-thumb" onerror="this.src='anh1.png';">
                 <p>${mod.name}</p>
             `;
 
             card.addEventListener('click', () => {
-                // CHỈ CHO PHÉP XOÁ KHI ĐÚNG EMAIL ADMIN ĐƯỢC CẤP QUYỀN
                 if (isAuthorizedAdmin && chkAdminMode && chkAdminMode.checked && chkDeleteMode && chkDeleteMode.checked) {
                     if (confirm(`Bạn có chắc chắn muốn XOÁ VĨNH VIỄN ô "${mod.name}" này không?`)) {
                         deleteDoc(doc(db, "addons", mod.id))
@@ -177,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             .catch(err => notify("❌ Lỗi khi xoá: " + err.message));
                     }
                 } else {
-                    // Khách bấm vào thì mở popup chạy tiến trình tải bình thường
                     if (downloadModal && modalModName) {
                         modalModName.innerText = mod.name;
                         currentDownloadUrl = mod.downloadUrl;
@@ -193,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // BẬT TẮT CHẾ ĐỘ ADMIN (CHỈ ADMIN THẬT SỰ MỚI CHẠY ĐƯỢC)
+    // ĐIỀU KHIỂN CHẾ ĐỘ ADMIN
     if (chkAdminMode) {
         chkAdminMode.addEventListener('change', () => {
             const isAuthorizedAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -224,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnAdminCancel.addEventListener('click', () => { if (adminAddModal) adminAddModal.style.display = "none"; });
     }
 
-    // LƯU Ô MỚI (CHẶN NGAY TỪ PHÍA KHÁCH HÀNG)
+    // THÊM VÀ LƯU Ô MỚI VÀO FIRESTORE (CHỈ CHO PHÉP ADMIN CHÍNH CHỦ)
     if (btnAdminSave) {
         btnAdminSave.addEventListener('click', () => {
             const isAuthorizedAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -234,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const name = addModName.value.trim();
-            const img = addModImg.value.trim();
+            const img = addModImg.value.trim(); // Người dùng có thể điền thẳng: anh2.jpg
             const url = addModUrl.value.trim();
             const category = addModCategory.value;
 
@@ -254,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // TIẾN TRÌNH TẢI MOD CỦA NGƯỜI DÙNG
+    // PROGRESS BAR TIẾN TRÌNH TẢI FILE
     if (btnDownloadActual) {
         btnDownloadActual.addEventListener('click', () => {
             if (!currentDownloadUrl) return notify("⚠️ Link tải trống!");
@@ -279,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnCancel.addEventListener('click', () => { if (downloadModal) downloadModal.classList.remove('active'); });
     }
 
-    // ĐIỀU HƯỚNG TÁP CATEGORY
+    // CHUYỂN TÁP DANH MỤC CATEGORY
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -301,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // KHUNG CHAT CỘNG ĐỒNG BÌNH THƯỜNG
+    // KHUNG TRÒ CHUYỆN CỘNG ĐỒNG
     function loadChatMessages() {
         if (unsubscribeChat) unsubscribeChat();
         const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
