@@ -295,10 +295,4 @@ footer {
     border-top: 1px solid #222222;
     box-sizing: border-box;
     z-index: 1001;     /* Đặt tầng cao để lớp đen mờ của popup không đè được lên nó */
-}   
-/* Hiệu ứng hover cho nút tròn avatar ở trang chủ */
-#userHomeBtn:hover {
-    border-color: #ffb6c1 !important;
-    color: #ffb6c1 !important;
-    box-shadow: 0 0 10px rgba(255, 182, 193, 0.4);
 }
