@@ -10,31 +10,31 @@
 <body>
 
     <div class="container">
-        <div class="header-flex" style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
-            <img src="logo.png" alt="Logo" class="logo" onerror="this.src='https://i.imgur.com/7S8V32v.png';">
-            
-            <div class="search-container" style="flex: 1; max-width: 400px;">
-                <input type="text" class="search-box" placeholder="Tìm kiếm ở đây...">
-                <button class="clear-btn" id="btnClearSearch">&times;</button>
-            </div>
-
-            <div style="position: relative; flex-shrink: 0;">
-                <div id="userHomeBtn" style="color: #ffffff; background: #000000; border: 2px solid #333333; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; font-size: 18px; transition: all 0.2s; overflow: hidden; box-sizing: border-box;">
-                    <i class="fas fa-user" id="defaultUserIcon"></i>
-                    <img id="userAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+        <div class="sticky-header">
+            <div class="header-flex">
+                <img src="logo.png" alt="Logo" class="logo" onerror="this.src='anh1.png';">
+                
+                <div class="search-container">
+                    <input type="text" class="search-box" placeholder="Tìm kiếm ở đây...">
+                    <button class="clear-btn" id="btnClearSearch">&times;</button>
                 </div>
 
-                <div id="accountDropdown" style="display: none; position: absolute; top: 55px; right: 0; background-color: #1a1a1a; border: 2px solid #333333; border-radius: 8px; width: 220px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 2000; text-align: center;">
-                    <div style="font-size: 11px; color: #777777; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; letter-spacing: 0.5px;">Tài khoản</div>
-                    <div id="dropdownEmail" style="color: #ffffff; font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 15px;">...</div>
-                    <button id="btnDropdownSignOut" class="btn btn-cancel" style="padding: 8px; font-size: 12px; border-radius: 6px; width: 100%; cursor: pointer;">Đăng xuất</button>
+                <div style="position: relative; flex-shrink: 0;">
+                    <div id="userHomeBtn" style="color: #ffffff; background: #000000; border: 2px solid #333333; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; font-size: 18px; transition: all 0.2s; overflow: hidden; box-sizing: border-box;">
+                        <i class="fas fa-user" id="defaultUserIcon"></i>
+                        <img id="userAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    </div>
+
+                    <div id="accountDropdown" style="display: none; position: absolute; top: 55px; right: 0; background-color: #1a1a1a; border: 2px solid #333333; border-radius: 8px; width: 220px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 2000; text-align: center;">
+                        <div style="font-size: 11px; color: #777777; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; letter-spacing: 0.5px;">Tài khoản</div>
+                        <div id="dropdownEmail" style="color: #ffffff; font-size: 13px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 15px;">...</div>
+                        <button id="btnDropdownSignOut" class="btn btn-cancel" style="padding: 8px; font-size: 12px; border-radius: 6px; width: 100%; cursor: pointer;">Đăng xuất</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="section-title">
-            Nhiều lượt tải nhất
-        </div>
+        <div class="section-title">Nhiều lượt tải nhất</div>
 
         <div class="category-tabs">
             <button class="tab-btn active" data-category="all">Tất cả</button>
@@ -44,6 +44,27 @@
         </div>
 
         <div id="addonContainer" class="addon-grid"></div>
+
+        <div id="communityChatContainer" class="chat-container">
+            <div class="chat-toggle-header" onclick="document.getElementById('communityChatContainer').classList.toggle('open')">
+                Trò chuyện cộng đồng
+            </div>
+            
+            <div class="chat-body-content">
+                <div id="chatAuthWarning" style="color: #777777; text-align: center; padding: 20px 0; font-size: 13px;">
+                    ⚠️ Vui lòng <a href="login.html" style="color: #ffb6c1; text-decoration: none; font-weight: bold;">Đăng nhập</a> để xem và tham gia trò chuyện.
+                </div>
+
+                <div id="chatBoxContent" style="display: none;">
+                    <div id="chatMessages" style="height: 220px; overflow-y: auto; padding: 10px; border: 1px solid #222222; border-radius: 6px; background: #0a0a0a; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." style="flex: 1; background: #111111; color: #fff; border: 1px solid #333333; border-radius: 6px; padding: 10px; outline: none; font-size: 13px;">
+                        <button id="btnSendChat" style="background: #ffb6c1; color: #000; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">GỬI</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="downloadModal" class="modal-overlay">
@@ -54,7 +75,7 @@
             </div>
             <div class="modal-buttons">
                 <button id="btnDownloadActual" class="btn btn-download">TẢI NGAY</button>
-                <button id="btnCancel" class="btn btn-cancel">TRỜ LẠI</button>
+                <button id="btnCancel" class="btn btn-cancel">TRỞ LẠI</button>
             </div>
         </div>
     </div>

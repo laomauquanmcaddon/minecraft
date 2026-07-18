@@ -14,7 +14,7 @@ body {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 20px 80px 20px; /* Tăng padding để không bị che bởi footer */
+    padding: 20px 20px 90px 20px; /* Chừa khoảng trống bên dưới tránh đè chân trang */
     box-sizing: border-box;
     flex: 1;
 }
@@ -110,10 +110,10 @@ body {
     overflow-x: auto;
     padding-bottom: 8px;
     scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch; /* Vuốt mượt trên điện thoại */
+    -webkit-overflow-scrolling: touch;
 }
 .category-tabs::-webkit-scrollbar {
-    display: none; /* Ẩn thanh cuộn xấu xí */
+    display: none;
 }
 .tab-btn {
     background-color: #000000;
@@ -133,10 +133,10 @@ body {
     border-color: #ffb6c1;
 }
 
-/* ///////// 5. LƯỚI TỰ ĐỘNG DIỄN THEO MÀN HÌNH ///////// */
+/* ///////// 5. LƯỚI TỰ ĐỘNG THEO KÍCH THƯỚC MÀN HÌNH ///////// */
 .addon-grid {
     display: grid;
-    /* Tự động chia cột: Trên mobile tối thiểu là 140px (chia được tầm 2 cột), trên PC tự tăng thêm */
+    /* Tự động chia số cột tối ưu cho cả PC và Điện thoại */
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
     gap: 12px; 
     width: 100%;
@@ -165,7 +165,7 @@ body {
 }
 .addon-card p {
     margin: 8px 0 0 0;
-    /* Chữ tự động co giãn mượt mà theo kích thước màn hình */
+    /* Chữ tự động co giãn to/nhỏ thông minh theo màn hình */
     font-size: clamp(11px, 1.2vw + 8px, 14px); 
     font-weight: bold;
     line-height: 1.4;
@@ -177,7 +177,60 @@ body {
     box-shadow: 0 0 10px rgba(255, 182, 193, 0.6); 
 }
 
-/* ///////// 6. POPUP TRƯỢT LÊN LƠ LỬNG ///////// */
+/* ///////// 6. KHUNG CHAT TRƯỢT THÔNG MINH Ở ĐÁY MÀN HÌNH ///////// */
+.chat-container {
+    position: fixed;
+    bottom: 39px; /* Nằm khít ngay trên footer cố định */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 94%;
+    max-width: 450px;
+    background: #000000;
+    border: 2px solid #333333;
+    border-radius: 12px 12px 0 0;
+    padding: 12px;
+    box-sizing: border-box;
+    z-index: 1002;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.9);
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.chat-toggle-header {
+    background: #111111;
+    color: #ffb6c1;
+    text-align: center;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+.chat-toggle-header::after {
+    content: '▲';
+    font-size: 10px;
+    transition: transform 0.3s;
+    color: #ffb6c1;
+}
+.chat-container.open .chat-toggle-header::after {
+    transform: rotate(180deg); /* Xoay mũi tên xuống khi mở rộng */
+}
+.chat-body-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, margin-top 0.3s;
+}
+.chat-container.open .chat-body-content {
+    max-height: 330px;
+    margin-top: 10px;
+}
+
+/* ///////// 7. POPUP & TOAST ///////// */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -189,7 +242,7 @@ body {
     justify-content: center;
     align-items: flex-end;
     display: none; 
-    z-index: 1000;
+    z-index: 2000;
 }
 .modal-overlay.active {
     display: flex; 
@@ -206,16 +259,9 @@ body {
     margin-bottom: 80px; 
     animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
-
 @keyframes slideUp {
-    from { 
-        transform: translateY(30px); 
-        opacity: 0;
-    }
-    to { 
-        transform: translateY(0); 
-        opacity: 1;
-    }
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 .modal-content h3 {
     margin-top: 0;
@@ -261,33 +307,7 @@ body {
     color: #ffffff;
 }
 
-/* ///////// 7. CSS CHO HỘP THÔNG BÁO TOAST ///////// */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #1a1a1a;
-    color: #ffffff;
-    padding: 10px 20px;
-    border-radius: 30px;
-    border: 1px solid #ffb6c1;
-    font-size: 13px;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    z-index: 2000; 
-    display: none;
-    animation: fadeInOut 2s ease forwards;
-}
-
-@keyframes fadeInOut {
-    0% { transform: translate(-50%, -20px); opacity: 0; }
-    15% { transform: translate(-50%, 0); opacity: 1; }
-    85% { transform: translate(-50%, 0); opacity: 1; }
-    100% { transform: translate(-50%, -20px); opacity: 0; }
-}
-
-/* ///////// 8. CHÂN TRANG CỐ ĐỊNH Ở ĐÁY MÀN HÌNH ///////// */
+/* ///////// 8. CHÂN TRANG CỐ ĐỊNH ///////// */
 footer {
     position: fixed;   
     bottom: 0;         
@@ -304,14 +324,13 @@ footer {
     z-index: 1001;     
 }
 
-/* ///////// 9. CẤU HÌNH RIÊNG KHI LÊN MÀN HÌNH LỚN (PC / TABLET) ///////// */
+/* ///////// 9. TỐI ƯU TRÊN MÀN HÌNH LỚN PC ///////// */
 @media (min-width: 768px) {
     .addon-grid {
-        /* Trên PC, nâng kích thước tối thiểu của ô lên 170px để tránh bị quá nhỏ bè */
         grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
         gap: 16px;
     }
     .category-tabs {
-        justify-content: center; /* Đưa các tab ra giữa màn hình PC cho đẹp */
+        justify-content: center;
     }
 }

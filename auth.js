@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Cấu hình Firebase chính xác 100% bằng text bạn vừa copy
+// Cấu hình Firebase chính xác của dự án của bạn
 const firebaseConfig = {
   apiKey: "AIzaSyDUXJQP0mBLsXF6Dv3TvdlVoINBHoLw0rk",
   authDomain: "minecraft-free-community.firebaseapp.com",
@@ -14,8 +15,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
+    // --- CÁC PHẦN TỬ CHAT TRÊN INDEX.HTML ---
+    const chatAuthWarning = document.getElementById('chatAuthWarning');
+    const chatBoxContent = document.getElementById('chatBoxContent');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const btnSendChat = document.getElementById('btnSendChat');
+
     // --- PHẦN TỬ TRÊN TRANG LOGIN.HTML ---
     const emailInput = document.getElementById('authEmail');
     const passwordInput = document.getElementById('authPassword');
@@ -35,6 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnDropdownSignOut = document.getElementById('btnDropdownSignOut');
 
     let isLoggedIn = false;
+    let currentUser = null;
+    let unsubscribeChat = null;
 
     // Hàm thông báo Toast nhảy lên giữa màn hình
     const notify = (message) => {
@@ -48,11 +59,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP
+    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP (ĐÃ TÍCH HỢP ĐỒNG BỘ CHAT)
     onAuthStateChanged(auth, (user) => {
         if (user) {
             isLoggedIn = true;
+            currentUser = user;
 
+            // Xử lý khung Chat khi đã đăng nhập
+            if (chatAuthWarning) chatAuthWarning.style.display = 'none';
+            if (chatBoxContent) chatBoxContent.style.display = 'block';
+            loadChatMessages();
+
+            // Xử lý Header và Trang Login cũ
             if (authContainer) authContainer.style.display = 'none';
             if (userInfoContainer) userInfoContainer.style.display = 'block';
             if (userEmailTxt) userEmailTxt.innerHTML = `🎉 Đăng nhập thành công!<br><strong style="color:#ffb6c1;">${user.email}</strong>`;
@@ -68,7 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } else {
             isLoggedIn = false;
+            currentUser = null;
 
+            // Xử lý khung Chat khi chưa đăng nhập
+            if (chatAuthWarning) chatAuthWarning.style.display = 'block';
+            if (chatBoxContent) chatBoxContent.style.display = 'none';
+            if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
+
+            // Thao tác cũ khi đăng xuất
             if (authContainer) authContainer.style.display = 'block';
             if (userInfoContainer) userInfoContainer.style.display = 'none';
 
@@ -82,7 +107,55 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // --- LOGIC TRÊN INDEX.HTML ---
+    // --- LOGIC XỬ LÝ LỌC VÀ LƯU TIN NHẮN CHAT VĨNH VIỄN ---
+    function loadChatMessages() {
+        if (unsubscribeChat) unsubscribeChat();
+
+        const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
+        
+        unsubscribeChat = onSnapshot(q, (snapshot) => {
+            if (!chatMessages) return;
+            chatMessages.innerHTML = "";
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const msgEl = document.createElement('div');
+                msgEl.style.fontSize = "12px";
+                msgEl.style.lineHeight = "1.4";
+                
+                const shortEmail = data.email.split('@')[0];
+                msgEl.innerHTML = `<strong style="color: #ffb6c1;">${shortEmail}:</strong> <span style="color: #ffffff;">${data.message}</span>`;
+                chatMessages.appendChild(msgEl);
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    }
+
+    function sendNewMessage() {
+        if (!chatInput || !currentUser) return;
+        const text = chatInput.value.trim();
+        if (text === "") return;
+
+        addDoc(collection(db, "chats"), {
+            email: currentUser.email,
+            message: text,
+            timestamp: new Date()
+        }).then(() => {
+            chatInput.value = "";
+        }).catch((err) => {
+            notify("❌ Lỗi gửi tin nhắn: " + err.message);
+        });
+    }
+
+    if (btnSendChat) btnSendChat.addEventListener('click', sendNewMessage);
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendNewMessage();
+        });
+    }
+
+    // --- CÁC LOGIC SỰ KIỆN CỦA TRANG CHỦ & TRANG ĐĂNG NHẬP CŨ ---
     if (userHomeBtn) {
         userHomeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -107,7 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- LOGIC TRÊN LOGIN.HTML ---
     if (btnSignUp) {
         btnSignUp.addEventListener('click', () => {
             const email = emailInput.value.trim();
