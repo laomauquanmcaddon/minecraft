@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDUXJQP0mBLsXF6Dv3TvdlVoINBHoLw0rk",
@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsPanel = document.getElementById('settingsPanel');
     const chkIncognito = document.getElementById('chkIncognito');
 
-    // ĐẶC QUYỀN ADMIN CHÍNH CHỦ
     const ADMIN_EMAIL = "huquan227@gmail.com"; 
     const adminCrown = document.getElementById('adminCrown');
     const adminSettingRow = document.getElementById('adminSettingRow');
@@ -64,6 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeCategory = "all";
     let currentDownloadUrl = "";
 
+    // Bộ nhớ tạm chứa link mạng xã hội của Admin
+    let adminSocialLinks = { facebook: "", telegram: "", tiktok: "", youtube: "" };
+
     const notify = (message) => {
         const toast = document.getElementById('customToast');
         if (toast) {
@@ -81,12 +83,71 @@ document.addEventListener("DOMContentLoaded", () => {
         return "Ẩn danh #" + Math.abs(hash % 10000).toString().padStart(4, '0');
     }
 
-    // XÁC THỰC VÀ PHÂN QUYỀN TRUY CẬP ADMIN
+    // ĐỒNG BỘ LINK MẠNG XÃ HỘI TỪ FIREBASE
+    function listenToSocialLinks() {
+        onSnapshot(doc(db, "admin_config", "socials"), (docSnap) => {
+            if (docSnap.exists()) {
+                adminSocialLinks = { ...adminSocialLinks, ...docSnap.data() };
+            }
+            renderSocialStatusBorder();
+        });
+    }
+    listenToSocialLinks();
+
+    function renderSocialStatusBorder() {
+        const isAuthorizedAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const isAdminModeActive = isAuthorizedAdmin && chkAdminMode && chkAdminMode.checked;
+        
+        document.querySelectorAll('.social-static-btn').forEach(btn => {
+            const platform = btn.getAttribute('data-platform');
+            const innerCircle = btn.querySelector('div');
+            if (isAdminModeActive) {
+                innerCircle.style.border = (adminSocialLinks[platform]) ? "3px solid #ffd700" : "3px dashed #ffb6c1";
+            } else {
+                innerCircle.style.border = (platform === "tiktok") ? "2px solid #ffffff" : "none";
+            }
+        });
+    }
+
+    // XỬ LÝ CLICK VÀO 4 BIỂU TƯỢNG CỐ ĐỊNH
+    document.querySelectorAll('.social-static-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const platform = btn.getAttribute('data-platform');
+            const isAuthorizedAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+            if (isAuthorizedAdmin && chkAdminMode && chkAdminMode.checked) {
+                // CHẾ ĐỘ ADMIN: BẬT DÒNG GẮN LINK LIỀN KHÔNG CẦN NÚT DẤU CỘNG
+                const oldLink = adminSocialLinks[platform] || "";
+                const newLink = prompt(`🔗 GẮN LINK MẠNG XÃ HỘI [${platform.toUpperCase()}]\nNhập link liên kết cho kênh của bạn (Để trống hoặc gõ "xoa" để gỡ link):`, oldLink);
+                
+                if (newLink !== null) {
+                    let finalLink = newLink.trim();
+                    if (finalLink.toLowerCase() === "xoa" || finalLink === "") {
+                        finalLink = "";
+                    }
+
+                    setDoc(doc(db, "admin_config", "socials"), {
+                        [platform]: finalLink
+                    }, { merge: true }).then(() => {
+                        notify(finalLink ? `✅ Đã gắn link vĩnh viễn cho ${platform.toUpperCase()}!` : `🗑️ Đã xóa đường link! Biểu tượng ${platform.toUpperCase()} vẫn được giữ nguyên.`);
+                    }).catch(err => notify("❌ Lỗi lưu dữ liệu: " + err.message));
+                }
+            } else {
+                // CHẾ ĐỘ NGƯỜI DÙNG: CLICK LÀ CHUYỂN HƯỚNG
+                const targetUrl = adminSocialLinks[platform];
+                if (!targetUrl) {
+                    notify(`⚠️ Kênh ${platform.toUpperCase()} này hiện tại chưa được Admin gắn link kết nối!`);
+                } else {
+                    window.open(targetUrl, '_blank');
+                }
+            }
+        });
+    });
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
             isLoggedIn = true;
             currentUser = user;
-
             if (chatAuthWarning) chatAuthWarning.style.display = 'none';
             if (chatBoxContent) chatBoxContent.style.display = 'block';
             loadChatMessages();
@@ -98,13 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 defaultUserIcon.style.display = 'none';
             }
 
-            // NẾU LÀ GMAIL ADMIN
             if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
                 if (adminCrown) adminCrown.style.display = 'block'; 
                 if (dropdownEmail) dropdownEmail.innerHTML = `<span style="color: #ffd700; font-weight: bold;">👑 ${user.email}</span>`; 
                 if (adminSettingRow) adminSettingRow.style.display = 'flex'; 
             } else {
-                // TÀI KHOẢN KHÁCH: KHÓA TOÀN BỘ CHỨC NĂNG CHỈNH SỬA
                 if (adminCrown) adminCrown.style.display = 'none';
                 if (dropdownEmail) dropdownEmail.innerText = user.email;
                 if (adminSettingRow) adminSettingRow.style.display = 'none';
@@ -126,9 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 defaultUserIcon.style.display = 'block';
             }
         }
+        renderSocialStatusBorder();
     });
 
-    // LẤY DỮ LIỆU CÁC Ô MOD TỪ FIREBASE
     function loadAddonCards() {
         if (unsubscribeMods) unsubscribeMods();
         const q = query(collection(db, "addons"), orderBy("timestamp", "desc"));
@@ -140,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadAddonCards();
 
-    // RENDER LƯỚI Ô CHỨA MOD (HỖ TRỢ TÊN FILE ẢNH THỦ CÔNG)
     function renderModsGrid() {
         if (!addonContainer) return;
         addonContainer.innerHTML = "";
@@ -158,11 +216,10 @@ document.addEventListener("DOMContentLoaded", () => {
             card.className = "addon-card";
             
             if (isAuthorizedAdmin && chkAdminMode && chkAdminMode.checked && chkDeleteMode && chkDeleteMode.checked) {
-                card.style.borderColor = "#ff4d4d";
+                card.style.borderColor = "#ff4d4d"; 
                 card.style.cursor = "pointer";
             }
 
-            // HỖ TRỢ ĐỌC ẢNH THỦ CÔNG (Nếu lỗi hoặc rỗng sẽ tự đổi sang logo dự phòng anh1.png)
             card.innerHTML = `
                 <img src="${mod.image || 'anh1.png'}" class="addon-thumb" onerror="this.src='anh1.png';">
                 <p>${mod.name}</p>
@@ -170,9 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             card.addEventListener('click', () => {
                 if (isAuthorizedAdmin && chkAdminMode && chkAdminMode.checked && chkDeleteMode && chkDeleteMode.checked) {
-                    if (confirm(`Bạn có chắc chắn muốn XOÁ VĨNH VIỄN ô "${mod.name}" này không?`)) {
+                    if (confirm(`🗑️ Xác nhận xoá vĩnh viễn ô dữ liệu "${mod.name}"?`)) {
                         deleteDoc(doc(db, "addons", mod.id))
-                            .then(() => notify("🗑️ Đã xoá ô chứa thành công!"))
+                            .then(() => notify("🗑️ Đã xoá ô thành công!"))
                             .catch(err => notify("❌ Lỗi khi xoá: " + err.message));
                     }
                 } else {
@@ -191,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ĐIỀU KHIỂN CHẾ ĐỘ ADMIN
     if (chkAdminMode) {
         chkAdminMode.addEventListener('change', () => {
             const isAuthorizedAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -205,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (chkDeleteMode) chkDeleteMode.checked = false;
             }
             renderModsGrid();
+            renderSocialStatusBorder();
         });
     }
 
@@ -222,21 +279,17 @@ document.addEventListener("DOMContentLoaded", () => {
         btnAdminCancel.addEventListener('click', () => { if (adminAddModal) adminAddModal.style.display = "none"; });
     }
 
-    // THÊM VÀ LƯU Ô MỚI VÀO FIRESTORE (CHỈ CHO PHÉP ADMIN CHÍNH CHỦ)
     if (btnAdminSave) {
         btnAdminSave.addEventListener('click', () => {
             const isAuthorizedAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-            if (!isAuthorizedAdmin) {
-                notify("❌ Bạn không có quyền thực hiện hành động này!");
-                return;
-            }
+            if (!isAuthorizedAdmin) return notify("❌ Bạn không có quyền!");
 
             const name = addModName.value.trim();
-            const img = addModImg.value.trim(); // Người dùng có thể điền thẳng: anh2.jpg
+            const img = addModImg.value.trim(); 
             const url = addModUrl.value.trim();
             const category = addModCategory.value;
 
-            if (!name || !url) return notify("⚠️ Tên ô và Link tải không được để trống!");
+            if (!name) return notify("⚠️ Tên ô không được để trống!");
 
             addDoc(collection(db, "addons"), {
                 name: name,
@@ -245,14 +298,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 category: category,
                 timestamp: new Date()
             }).then(() => {
-                notify("✅ Đã tạo và lưu ô chứa vĩnh viễn!");
+                notify("✅ Đã tạo ô mới thành công!");
                 addModName.value = ""; addModImg.value = ""; addModUrl.value = "";
                 if (adminAddModal) adminAddModal.style.display = "none";
             }).catch((err) => { notify("❌ Lỗi: " + err.message); });
         });
     }
 
-    // PROGRESS BAR TIẾN TRÌNH TẢI FILE
     if (btnDownloadActual) {
         btnDownloadActual.addEventListener('click', () => {
             if (!currentDownloadUrl) return notify("⚠️ Link tải trống!");
@@ -277,7 +329,6 @@ document.addEventListener("DOMContentLoaded", () => {
         btnCancel.addEventListener('click', () => { if (downloadModal) downloadModal.classList.remove('active'); });
     }
 
-    // CHUYỂN TÁP DANH MỤC CATEGORY
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -292,14 +343,13 @@ document.addEventListener("DOMContentLoaded", () => {
         btnOpenSettings.addEventListener('click', (e) => {
             e.stopPropagation();
             if (settingsPanel.style.maxHeight === '0px' || !settingsPanel.style.maxHeight) {
-                settingsPanel.style.maxHeight = '120px';
+                settingsPanel.style.maxHeight = '160px';
             } else {
                 settingsPanel.style.maxHeight = '0px';
             }
         });
     }
 
-    // KHUNG TRÒ CHUYỆN CỘNG ĐỒNG
     function loadChatMessages() {
         if (unsubscribeChat) unsubscribeChat();
         const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
@@ -352,4 +402,60 @@ document.addEventListener("DOMContentLoaded", () => {
     if (accountDropdown) accountDropdown.addEventListener('click', (e) => e.stopPropagation());
     document.addEventListener('click', () => { if (accountDropdown) accountDropdown.style.display = 'none'; });
     if (btnDropdownSignOut) btnDropdownSignOut.addEventListener('click', () => { signOut(auth).then(() => { notify("🔒 Đã đăng xuất!"); }); });
-});
+
+    const pwdSettingRow = document.getElementById('pwdSettingRow');
+    const changePasswordModal = document.getElementById('changePasswordModal');
+    const btnCancelChangePwd = document.getElementById('btnCancelChangePwd');
+    const btnConfirmChangePwd = document.getElementById('btnConfirmChangePwd');
+    const txtNewPassword = document.getElementById('txtNewPassword');
+    const txtConfirmPassword = document.getElementById('txtConfirmPassword');
+
+    if (pwdSettingRow && changePasswordModal) {
+        pwdSettingRow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!currentUser) return notify("⚠️ Bạn cần đăng nhập để sử dụng tính năng này!");
+            if (accountDropdown) accountDropdown.style.display = 'none';
+            txtNewPassword.value = ""; txtConfirmPassword.value = "";
+            changePasswordModal.classList.add('active');
+        });
+    }
+
+    if (btnCancelChangePwd) {
+        btnCancelChangePwd.addEventListener('click', () => {
+            if (changePasswordModal) changePasswordModal.classList.remove('active');
+        });
+    }
+
+    if (btnConfirmChangePwd) {
+        btnConfirmChangePwd.addEventListener('click', () => {
+            if (!currentUser) return notify("⚠️ Bạn chưa đăng nhập!");
+            const newPwd = txtNewPassword.value.trim();
+            const confirmPwd = txtConfirmPassword.value.trim();
+
+            if (!newPwd || !confirmPwd) return notify("⚠️ Vui lòng điền mật khẩu ở cả 2 dòng!");
+            if (newPwd.length < 6) return notify("⚠️ Mật khẩu mới phải có ít nhất 6 ký tự!");
+            if (newPwd !== confirmPwd) return notify("❌ Mật khẩu nhập lại lần 2 không khớp trùng!");
+
+            btnConfirmChangePwd.disabled = true;
+            btnConfirmChangePwd.innerText = "ĐANG XỬ LÝ...";
+
+            updatePassword(currentUser, newPwd)
+                .then(() => {
+                    notify("🎉 Đổi thành công! Hãy đăng nhập lại bằng mật khẩu mới.");
+                    if (changePasswordModal) changePasswordModal.classList.remove('active');
+                    setTimeout(() => {
+                        signOut(auth).then(() => { window.location.href = "login.html"; });
+                    }, 1200);
+                })
+                .catch((error) => {
+                    btnConfirmChangePwd.disabled = false;
+                    btnConfirmChangePwd.innerText = "XÁC NHẬN THAY ĐỔI";
+                    if (error.code === "auth/requires-recent-login") {
+                        notify("🔒 Vì lý do bảo mật, vui lòng đăng xuất ra, đăng nhập lại rồi đổi liền nhé!");
+                    } else {
+                        notify("❌ Thất bại: " + error.message);
+                    }
+                });
+        });
+    }
+}); 

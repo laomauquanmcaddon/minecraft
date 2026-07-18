@@ -42,6 +42,12 @@
                                 <span style="font-size: 12px; color: #cccccc;"><i class="fas fa-user-secret" style="margin-right: 4px;"></i> Ẩn danh</span>
                                 <input type="checkbox" id="chkIncognito" style="cursor: pointer; width: 16px; height: 16px; accent-color: #ffb6c1;">
                             </div>
+                            
+                            <div id="pwdSettingRow" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a1a1a; cursor: pointer; user-select: none;">
+                                <span style="font-size: 12px; color: #ffb6c1;"><i class="fas fa-key" style="margin-right: 4px;"></i> Đổi mật khẩu</span>
+                                <i class="fas fa-chevron-right" style="font-size: 10px; color: #777;"></i>
+                            </div>
+
                             <div id="adminSettingRow" style="display: none; flex-direction: column; padding: 8px 0; gap: 8px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between;">
                                     <span style="font-size: 12px; color: #ffd700; font-weight: bold;"><i class="fas fa-crown" style="margin-right: 4px;"></i> Chế độ Admin</span>
@@ -61,9 +67,7 @@
             </div>
         </div>
 
-        <div class="section-title">Nhiều lượt tải nhất</div>
-
-        <div class="category-tabs">
+        <div class="category-tabs" style="margin-top: 15px; margin-bottom: 15px;">
             <button class="tab-btn active" data-category="all">Tất cả</button>
             <button class="tab-btn" data-category="mcaddon">McAddon</button>
             <button class="tab-btn" data-category="mcpack">McPack</button>
@@ -77,8 +81,31 @@
         </div>
 
         <div id="communityChatContainer" class="chat-container">
-            <div class="chat-toggle-header" onclick="document.getElementById('communityChatContainer').classList.toggle('open')">
-                Trò chuyện cộng đồng
+            <div class="chat-toggle-header" onclick="document.getElementById('communityChatContainer').classList.toggle('open')" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px;">
+                <span>Trò chuyện cộng đồng</span>
+                
+                <div id="socialAdminChannels" style="display: flex; align-items: center; gap: 8px;" onclick="event.stopPropagation();">
+                    <div class="social-static-btn" data-platform="facebook" style="cursor: pointer;">
+                        <div style="width: 28px; height: 28px; background: #1877F2; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                            <i class="fab fa-facebook-f" style="color: #ffffff; font-size: 13px;"></i>
+                        </div>
+                    </div>
+                    <div class="social-static-btn" data-platform="telegram" style="cursor: pointer;">
+                        <div style="width: 28px; height: 28px; background: #26A5E4; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                            <i class="fab fa-telegram-plane" style="color: #ffffff; font-size: 13px; padding-right: 1px;"></i>
+                        </div>
+                    </div>
+                    <div class="social-static-btn" data-platform="tiktok" style="cursor: pointer;">
+                        <div style="width: 28px; height: 28px; background: #000000; border: 1px solid #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                            <i class="fab fa-tiktok" style="color: #ffffff; font-size: 11px;"></i>
+                        </div>
+                    </div>
+                    <div class="social-static-btn" data-platform="youtube" style="cursor: pointer;">
+                        <div style="width: 28px; height: 28px; background: #FF0000; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4);">
+                            <i class="fab fa-youtube" style="color: #ffffff; font-size: 13px;"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="chat-body-content">
@@ -134,6 +161,22 @@
             <div class="modal-buttons">
                 <button id="btnDownloadActual" class="btn btn-download">TẢI NGAY</button>
                 <button id="btnCancel" class="btn btn-cancel">TRỜ LẠI</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="changePasswordModal" class="modal-overlay" style="z-index: 3500;">
+        <div class="modal-content" style="border-color: #ffb6c1;">
+            <h3 style="color: #ffb6c1; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-key"></i> Đổi mật khẩu tài khoản
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 15px; text-align: left; margin-bottom: 20px;">
+                <input type="password" id="txtNewPassword" placeholder="Nhập mật khẩu mới..." style="width: 100%; background: #000000; color: #ffffff; border: 1px solid #333333; padding: 12px; border-radius: 6px; outline: none; box-sizing: border-box; font-size: 14px;">
+                <input type="password" id="txtConfirmPassword" placeholder="Nhập lại mật khẩu mới..." style="width: 100%; background: #000000; color: #ffffff; border: 1px solid #333333; padding: 12px; border-radius: 6px; outline: none; box-sizing: border-box; font-size: 14px;">
+            </div>
+            <div class="modal-buttons">
+                <button id="btnConfirmChangePwd" class="btn btn-download">XÁC NHẬN THAY ĐỔI</button>
+                <button id="btnCancelChangePwd" class="btn btn-cancel">HỦY BỎ</button>
             </div>
         </div>
     </div>
