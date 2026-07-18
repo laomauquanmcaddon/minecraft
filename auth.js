@@ -1,15 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Cấu hình kết nối Firebase đã sửa lỗi API Key chính xác 100%
+// Cấu hình Firebase chính xác 100% bằng text bạn vừa copy
 const firebaseConfig = {
-    apiKey: "AIzaSyBlXJQP0mBLcXF6Dv3TvdlyoDN8MoLmN0ks",
-    authDomain: "minecraft-free-community.firebaseapp.com",
-    projectId: "minecraft-free-community",
-    storageBucket: "minecraft-free-community.appspot.com",
-    messagingSenderId: "603547178802",
-    appId: "1:603547178802:web:43dc994d9fec9b918cb42b",
-    measurementId: "G-G5BMH0LEBC"
+  apiKey: "AIzaSyDUXJQP0mBLsXF6Dv3TvdlVoINBHoLw0rk",
+  authDomain: "minecraft-free-community.firebaseapp.com",
+  projectId: "minecraft-free-community",
+  storageBucket: "minecraft-free-community.firebasestorage.app",
+  messagingSenderId: "603547178802",
+  appId: "1:603547178802:web:41dc99449d0c9b918c692b",
+  measurementId: "G-6B8MH0LB8C"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isLoggedIn = false;
 
-    // Hàm thông báo Toast hiện chữ nhảy lên giữa màn hình cực đẹp
+    // Hàm thông báo Toast nhảy lên giữa màn hình
     const notify = (message) => {
         const toast = document.getElementById('customToast');
         if (toast) {
@@ -48,17 +48,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP CỦA TÀI KHOẢN
+    // THEO DÕI TRẠNG THÁI ĐĂNG NHẬP
     onAuthStateChanged(auth, (user) => {
         if (user) {
             isLoggedIn = true;
 
-            // Xử lý trên trang login.html
             if (authContainer) authContainer.style.display = 'none';
             if (userInfoContainer) userInfoContainer.style.display = 'block';
             if (userEmailTxt) userEmailTxt.innerHTML = `🎉 Đăng nhập thành công!<br><strong style="color:#ffb6c1;">${user.email}</strong>`;
             
-            // Xử lý hiện Avatar Gmail thực tế trên index.html
             if (userAvatar && defaultUserIcon) {
                 const finalAvatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&background=ffb6c1&color=000000&bold=true&rounded=true`;
                 userAvatar.src = finalAvatarUrl;
@@ -71,11 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             isLoggedIn = false;
 
-            // Đưa trang login.html về mặc định chưa nhập
             if (authContainer) authContainer.style.display = 'block';
             if (userInfoContainer) userInfoContainer.style.display = 'none';
 
-            // Đưa nút Avatar trang chủ về icon trống
             if (userAvatar && defaultUserIcon) {
                 userAvatar.style.display = 'none';
                 defaultUserIcon.style.display = 'block';
@@ -86,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // --- LOGIC ĐIỀU HƯỚNG TRÊN TRANG CHỦ (INDEX.HTML) ---
+    // --- LOGIC TRÊN INDEX.HTML ---
     if (userHomeBtn) {
         userHomeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -111,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- LOGIC XỬ LÝ NÚT BẤM TRÊN TRANG ĐĂNG NHẬP (LOGIN.HTML) ---
+    // --- LOGIC TRÊN LOGIN.HTML ---
     if (btnSignUp) {
         btnSignUp.addEventListener('click', () => {
             const email = emailInput.value.trim();
@@ -128,8 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch((error) => {
                     if (error.code === 'auth/email-already-in-use') {
                         notify("❌ Email này đã được đăng ký trước đó rồi!");
+                    } else if (error.code === 'auth/invalid-email') {
+                        notify("❌ Định dạng Email không hợp lệ!");
                     } else {
-                        notify("❌ Lỗi: Định dạng email không hợp lệ!");
+                        notify("❌ Lỗi: " + error.message);
                     }
                 });
         });
