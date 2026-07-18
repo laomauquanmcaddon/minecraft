@@ -1,122 +1,214 @@
-/* ///////// DANH SÁCH DỮ LIỆU CÁC Ô MOD VÀ LINK TẢI ///////// */
-const modList = [
-    // Ô số 1: Thay thế bằng ảnh thật và link tải file trực tiếp (.mcaddon) của bạn
+/* ///////// 1. DANH SÁCH DỮ LIỆU GỐC ///////// */
+const originalMods = [
     { 
-        name: "mcaddon<br>mcpack 1", 
+        name: "Terrain Landscapes<br>V3.0", 
         img: "anh1.png", 
-        downloadUrl: "https://www.mediafire.com/file/mp6ju0gmzfgwzhx/Terrain_landscapes_V3.0.mcaddon" 
+        downloadUrl: "https://www.mediafire.com/file/mp6ju0gmzfgwzhx/Terrain_landscapes_V3.0.mcaddon/file",
+        type: "mcaddon" 
     }, 
-    // Ô số 2: Link ảnh mẫu và link tải file trực tiếp (.mcpack)
     { 
-        name: "mcaddon<br>mcpack 2", 
-        img: "https://placehold.co/150x150/png", 
-        downloadUrl: "files/addon2.mcpack" 
-    },
-    // Ô số 3: Link tải file cài đặt game (.apk)
-    { 
-        name: "mcaddon<br>mcpack 3", 
-        img: "https://placehold.co/150x150/png", 
-        downloadUrl: "files/game.apk" 
-    },
-    // Ô số 4: Bạn có thể dán link Mediafire hoặc Google Drive vào đây để test
-    { 
-        name: "mcaddon<br>mcpack 4", 
-        img: "https://placehold.co/150x150/png", 
-        downloadUrl: "https://www.mediafire.com/file/xxxxx/file.zip/file" 
+        name: "Siêu xe Thể thao<br>mcpack", 
+        img: "anh2.png", 
+        downloadUrl: "files/addon2.mcpack",
+        type: "mcpack" 
     },
     { 
-        name: "mcaddon<br>mcpack 5", 
-        img: "https://placehold.co/150x150/png", 
-        downloadUrl: "#" 
+        name: "Vũ khí Huyền thoại<br>V2", 
+        img: "https://i.imgur.com/example.png", 
+        downloadUrl: "files/game.apk",
+        type: "apk" 
     },
     { 
-        name: "mcaddon<br>mcpack 6", 
-        img: "https://placehold.co/150x150/png", 
-        downloadUrl: "#" 
+        name: "Gói Kết cấu Đẹp<br>Shader", 
+        img: "anh4.png", 
+        downloadUrl: "https://www.mediafire.com/file/xxxxx/file.zip/file",
+        type: "mcpack" 
     }
 ];
 
-/* ///////// KHỞI TẠO CÁC BIẾN LIÊN KẾT ĐẾN GIAO DIỆN ///////// */
+/* TỰ ĐỘNG NHÂN BẢN: Nhân số lượng lên 60 lần (Tổng 240 ô) và GIỮ NGUYÊN TÊN GỐC SẠCH SẼ */
+const modList = [];
+for (let i = 1; i <= 60; i++) {
+    originalMods.forEach(mod => {
+        modList.push({
+            name: mod.name, // Đã bỏ phần cộng chuỗi "(Tập i)" đi theo ý bạn
+            img: mod.img,
+            downloadUrl: mod.downloadUrl,
+            type: mod.type
+        });
+    });
+}
+
+/* ///////// 2. KHỞI TẠO CÁC BIẾN LIÊN KẾT GIAO DIỆN ///////// */
 const container = document.getElementById('addonContainer');
 const modal = document.getElementById('downloadModal');
 const modalModName = document.getElementById('modalModName');
 const btnCancel = document.getElementById('btnCancel');
 const btnDownloadActual = document.getElementById('btnDownloadActual');
 const progressBar = document.getElementById('progressBar');
+const searchBox = document.querySelector('.search-box');
+const btnClearSearch = document.getElementById('btnClearSearch');
 
-let currentDownloadUrl = ""; // Biến lưu tạm thời đường dẫn tải của ô đang được chọn
+let currentDownloadUrl = ""; 
+let toastTimer = null;
 
-/* ///////// TỰ ĐỘNG VẼ CÁC Ô MOD RA MÀN HÌNH ///////// */
-modList.forEach(mod => {
-    const card = document.createElement('div');
-    card.className = 'addon-card';
-    card.style.cursor = 'pointer'; // Tạo hiệu ứng bàn tay khi di chuột trên PC
+/* HÀM TẠO VÀ HIỂN THỊ THÔNG BÁO NHANH (TOAST) */
+function showToast(message) {
+    let toast = document.getElementById('customToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'customToast';
+        toast.className = 'toast-container';
+        document.body.appendChild(toast);
+    }
     
-    card.innerHTML = `
-        <img src="${mod.img}" alt="" class="addon-thumb">
-        <p>${mod.name}</p>
-    `;
+    toast.innerHTML = message;
+    toast.style.display = 'block';
 
-    // Sự kiện: Khi click vào vùng ô mod, nạp dữ liệu và đẩy bảng tiến trình lên
-    card.addEventListener('click', () => {
-        modalModName.innerHTML = mod.name;
-        progressBar.style.width = '0%'; // Reset thanh tiến trình về ban đầu
-        currentDownloadUrl = mod.downloadUrl; // Lưu lại link của ô được chọn
-        modal.classList.add('active'); // Kích hoạt hiệu ứng trượt lên
+    if (toastTimer) clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+        toast.style.display = 'none';
+    }, 2000);
+}
+
+/* ///////// 3. HÀM VẼ VÀ LỌC DỮ LIỆU CHÍNH ///////// */
+function renderAndFilterMods() {
+    const currentTab = document.querySelector('.tab-btn.active').getAttribute('data-category');
+    const keyword = searchBox ? searchBox.value.toLowerCase().trim() : "";
+
+    container.innerHTML = '';
+
+    modList.forEach(mod => {
+        if (currentTab !== "all" && mod.type !== currentTab) return;
+        if (keyword && !mod.name.toLowerCase().includes(keyword)) return;
+
+        const card = document.createElement('div');
+        card.className = 'addon-card';
+        card.style.cursor = 'pointer';
+        
+        card.innerHTML = `
+            <img data-src="${mod.img}" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'></svg>" alt="" class="addon-thumb lazy-thumb" onerror="this.src='https://i.imgur.com/7S8V32v.png';">
+            <p>${mod.name}</p>
+        `;
+
+        card.addEventListener('click', () => {
+            if (modal) {
+                modalModName.innerHTML = mod.name;
+                progressBar.style.width = '0%'; 
+                currentDownloadUrl = mod.downloadUrl; 
+                modal.style.display = 'flex'; 
+                setTimeout(() => { modal.classList.add('active'); }, 10); 
+            }
+        });
+
+        container.appendChild(card);
     });
 
-    container.appendChild(card);
-});
+    initLazyLoading();
+}
 
-/* ///////// XỬ LÝ SỰ KIỆN KHI BẤM NÚT "TẢI NGAY" ///////// */
-btnDownloadActual.addEventListener('click', () => {
-    // Kiểm tra xem ô mod hiện tại đã được cấu hình link tải chưa
-    if (!currentDownloadUrl || currentDownloadUrl === "#") {
-        alert("Hiện tại chưa có link tải cho Mod này!");
-        return;
-    }
+/* ///////// 4. BỘ QUÉT LAZY LOADING ///////// */
+function initLazyLoading() {
+    const lazyImages = document.querySelectorAll('.lazy-thumb');
 
-    let width = 0;
-    // Chạy giả lập thanh tiến trình tăng dần từ 0% đến 100% cho mượt mà
-    const interval = setInterval(() => {
-        if (width >= 100) {
-            clearInterval(interval);
-            
-            // KIỂM TRA ĐUÔI FILE ĐỂ TỰ ĐỘNG KÍCH HOẠT TẢI KHÔNG ĐỔI TAB
-            const isDirectFile = currentDownloadUrl.match(/\.(mcaddon|mcpack|apk|zip|rar|png|jpg)$/i);
-
-            if (isDirectFile) {
-                // Trường hợp 1: Nếu là file trực tiếp, tạo thẻ tải âm thầm ngay tại trang hiện tại
-                const hiddenLink = document.createElement('a');
-                hiddenLink.href = currentDownloadUrl;
-                hiddenLink.setAttribute('download', '');
-                document.body.appendChild(hiddenLink);
-                hiddenLink.click();
-                document.body.removeChild(hiddenLink);
-            } else {
-                // Trường hợp 2: Nếu là link Mediafire/Drive, sử dụng iframe ẩn để gửi lệnh tải mà không nhảy sang tab mới
-                let iframe = document.getElementById('hiddenDownloadIframe');
-                if (!iframe) {
-                    iframe = document.createElement('iframe');
-                    iframe.id = 'hiddenDownloadIframe';
-                    iframe.style.display = 'none';
-                    document.body.appendChild(iframe);
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const image = entry.target;
+                    image.src = image.getAttribute('data-src');
+                    image.classList.remove('lazy-thumb');
+                    imageObserver.unobserve(image);
                 }
-                iframe.src = currentDownloadUrl;
-            }
-            
-            // Sau khi lệnh tải được phát đi, tự động thu bảng điều khiển xuống sau 0.5 giây
-            setTimeout(() => {
-                modal.classList.remove('active');
-            }, 500);
+            });
+        });
+
+        lazyImages.forEach(image => {
+            imageObserver.observe(image);
+        });
+    } else {
+        lazyImages.forEach(image => {
+            image.src = image.getAttribute('data-src');
+        });
+    }
+}
+
+renderAndFilterMods();
+
+/* ///////// 5. THEO DÕI CUỘN TRANG ĐỂ LÀM MỜ HEADER ///////// */
+const headerElement = document.querySelector('.sticky-header');
+if (headerElement) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 40) {
+            headerElement.classList.add('scrolled');
         } else {
-            width += 5; // Tốc độ tải (mỗi lần tăng 5%)
-            progressBar.style.width = width + '%';
+            headerElement.classList.remove('scrolled');
         }
-    }, 40); // Cứ sau mỗi 40ms sẽ tăng thanh tiến trình lên một chút
+    });
+}
+
+/* ///////// 6. LẮNG NGHE CÁC SỰ KIỆN TƯƠNG TÁC ///////// */
+
+// Sự kiện bấm chọn Tab danh mục
+document.querySelectorAll('.tab-btn').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+        document.querySelector('.tab-btn.active').classList.remove('active');
+        e.target.classList.add('active');
+        renderAndFilterMods();
+        showToast(`📂 Đã lọc danh mục: ${e.target.innerText}`);
+    });
 });
 
-/* ///////// XỬ LÝ SỰ KIỆN KHI BẤM NÚT "TRỞ LẠI" ///////// */
-btnCancel.addEventListener('click', () => {
-    modal.classList.remove('active'); // Ẩn bảng điều khiển xuống dưới
-});
+// Sự kiện gõ chữ vào ô Tìm kiếm
+if (searchBox && btnClearSearch) {
+    searchBox.addEventListener('input', (e) => {
+        const value = e.target.value.trim();
+        btnClearSearch.style.display = value.length > 0 ? 'block' : 'none';
+        renderAndFilterMods();
+    });
+
+    btnClearSearch.addEventListener('click', () => {
+        searchBox.value = '';
+        btnClearSearch.style.display = 'none';
+        renderAndFilterMods();
+        searchBox.focus();
+        showToast("🧹 Đã xóa từ khóa tìm kiếm");
+    });
+}
+
+// Sự kiện bấm nút "TẢI NGAY" trên Popup
+if (btnDownloadActual) {
+    btnDownloadActual.addEventListener('click', () => {
+        if (!currentDownloadUrl || currentDownloadUrl === "#") {
+            showToast("⚠️ Chưa có link tải cho mod này!");
+            return;
+        }
+        
+        showToast("🔄 Đang chuẩn bị tệp tin tải xuống...");
+
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                window.open(currentDownloadUrl, '_blank');
+                showToast("✅ Bắt đầu tải xuống thành công!");
+                setTimeout(() => {
+                    modal.classList.remove('active');
+                    modal.style.display = 'none';
+                }, 500);
+            } else {
+                width += 5;
+                progressBar.style.width = width + '%';
+            }
+        }, 40);
+    });
+}
+
+// Sự kiện bấm nút "TRỞ LẠI" đóng Popup
+if (btnCancel) {
+    btnCancel.addEventListener('click', () => {
+        modal.classList.remove('active'); 
+        modal.style.display = 'none'; 
+    });
+}

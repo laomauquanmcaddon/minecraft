@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thành Viên Cộng Đồng</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+        .auth-box {
+            width: 100%;
+            max-width: 380px;
+            background-color: #000000;
+            border: 2px solid #333333;
+            border-radius: 12px;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+        .auth-box:focus-within {
+            border-color: #ffb6c1;
+        }
+        .auth-title {
+            color: #ffb6c1;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .auth-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .auth-box .search-box {
+            padding: 12px 15px;
+        }
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #777777;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .btn-back:hover {
+            color: #ffb6c1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-page">
+        <div class="auth-box">
+            <div class="auth-title">
+                <i class="fas fa-user-shield"></i> Thành Viên Cộng Đồng
+            </div>
+            
+            <div id="authContainer">
+                <div class="auth-input-group">
+                    <input type="email" id="authEmail" class="search-box" placeholder="Nhập Email của bạn...">
+                    <input type="password" id="authPassword" class="search-box" placeholder="Nhập mật khẩu...">
+                </div>
+                <div class="auth-actions">
+                    <button id="btnSignIn" class="btn btn-download">ĐĂNG NHẬP</button>
+                    <button id="btnSignUp" class="btn btn-cancel">ĐĂNG KÝ MỚI</button>
+                </div>
+            </div>
+
+            <div id="userInfoContainer" style="display: none;">
+                <p id="userEmailTxt" style="color: #ffffff; font-size: 15px; margin-bottom: 20px;"></p>
+                <button id="btnSignOut" class="btn btn-cancel">ĐĂNG XUẤT TÀI KHOẢN</button>
+            </div>
+
+            <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
+        </div>
+    </div>
+
+    <div id="customToast" class="toast-container"></div>
+
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
